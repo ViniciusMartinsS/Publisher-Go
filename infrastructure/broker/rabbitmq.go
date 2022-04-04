@@ -3,6 +3,7 @@ package broker
 import (
 	"log"
 
+	"github.com/ViniciusMartinss/publisher-go/domain"
 	"github.com/streadway/amqp"
 )
 
@@ -10,7 +11,7 @@ type Broker interface {
 	Connect() broker
 	ChannelSetup() broker
 	BuildQueue(name string) broker
-	Publish(queue string, message string) bool
+	Publish(queue string, content domain.Content) bool
 	Disconnect()
 }
 
@@ -56,14 +57,13 @@ func (b broker) BuildQueue(name string) broker {
 	return b
 }
 
-func (b broker) Publish(queue string, message string) bool {
-	//@TODO - Receive content as parameter with a generic struct (ContentType, Body) that matches to the Publish of amqp
-	content := amqp.Publishing{
-		ContentType: "text/plain",
-		Body:        []byte(message),
+func (b broker) Publish(queue string, content domain.Content) bool {
+	message := amqp.Publishing{
+		ContentType: content.Type,
+		Body:        content.Body,
 	}
 
-	err := b.channel.Publish("", queue, false, false, content)
+	err := b.channel.Publish("", queue, false, false, message)
 	if err != nil {
 		log.Printf("[ERROR] Error occurred while publishing message to queue: %s\n - error: %v", queue, err.Error())
 		return false
