@@ -6,6 +6,14 @@ import (
 	"github.com/streadway/amqp"
 )
 
+type Broker interface {
+	Connect() broker
+	ChannelSetup() broker
+	BuildQueue(name string) broker
+	Publish(queue string, message string) bool
+	Disconnect()
+}
+
 type brokerSetting struct {
 	connection *amqp.Connection
 	channel    *amqp.Channel
@@ -14,7 +22,7 @@ type brokerSetting struct {
 
 type broker struct{ brokerSetting }
 
-func NewBrokerBuilder() broker {
+func NewBrokerBuilder() Broker {
 	return broker{}
 }
 
@@ -25,7 +33,6 @@ func (b broker) Connect() broker {
 	}
 
 	b.connection = connection
-
 	return b
 }
 
@@ -36,7 +43,6 @@ func (b broker) ChannelSetup() broker {
 	}
 
 	b.channel = channel
-
 	return b
 }
 
